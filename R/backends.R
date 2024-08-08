@@ -144,7 +144,7 @@ fit_model <- function(model, backend, ...) {
 # @return a fitted Stan model
 .fit_model_rstan <- function(model, sdata, algorithm, iter, warmup, thin,
                              chains, cores, threads, opencl, init, exclude,
-                             seed, control, silent, future, ...) {
+                             seed, control, silent, future, mpi, ...) {
 
   # some input checks and housekeeping
   if (use_threading(threads)) {
@@ -161,6 +161,10 @@ fit_model <- function(model, backend, ...) {
     stop2("OpenCL is not supported by backend 'rstan' version ",
           utils::packageVersion("rstan"), ".")
   }
+  if (mpi) {
+      stop2("MPI is not supported by backend 'rstan'")
+  }
+
   if (is.null(init)) {
     init <- "random"
   } else if (is.character(init) && !init %in% c("random", "0")) {
@@ -226,7 +230,7 @@ fit_model <- function(model, backend, ...) {
 # @return a fitted Stan model
 .fit_model_cmdstanr <- function(model, sdata, algorithm, iter, warmup, thin,
                                 chains, cores, threads, opencl, init, exclude,
-                                seed, control, silent, future, ...) {
+                                seed, control, silent, future, mpi, ...) {
 
   require_package("cmdstanr")
   # some input checks and housekeeping
@@ -279,7 +283,11 @@ fit_model <- function(model, backend, ...) {
     if (use_threading(threads)) {
       args$threads_per_chain <- threads$threads
     }
-    out <- do_call(model$sample, args)
+    if (mpi) {
+      out <- do_call(model$sample_mpi, args)
+    } else {
+      out <- do_call(model$sample, args)
+    }        
   } else if (algorithm %in% c("fullrank", "meanfield")) {
     c(args) <- nlist(iter, algorithm)
     if (use_threading(threads)) {

@@ -75,7 +75,7 @@ brmsfit <- function(formula = NULL, data = data.frame(), prior = empty_prior(),
   }
   x <- nlist(
     formula, data, prior, data2, stanvars, model, save_pars, algorithm,
-    backend, threads, opencl, stan_args, fit, basis, criteria, file,
+    backend, threads, opencl, mpi, stan_args, fit, basis, criteria, file,
     version, family, autocor, ranef, cov_ranef, stan_funs, data.name
   )
   class(x) <- "brmsfit"

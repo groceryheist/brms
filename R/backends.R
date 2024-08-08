@@ -105,9 +105,15 @@ compile_model <- function(model, backend, ...) {
   #   .canonicalize_stan_model(args$stan_file, overwrite_file = TRUE)
   # }
   if (use_threading(threads)) {
+      if (use_mpi(mpi)) {
+          stop2("MPI and Threading are mutually exclusive")
+      }
     args$cpp_options$stan_threads <- TRUE
   }
   if (use_opencl(opencl)) {
+      if (use_mpi(mpi)) {
+          stop2("MPI and Opencl are mutually exclusive")
+      }
     args$cpp_options$stan_opencl <- TRUE
   }
   if (use_mpi(mpi)) {
@@ -154,8 +160,8 @@ fit_model <- function(model, backend, ...) {
 # @param sdata named list to be passed to Stan as data
 # @return a fitted Stan model
 .fit_model_rstan <- function(model, sdata, algorithm, iter, warmup, thin,
-                             chains, cores, threads, opencl, init, exclude,
-                             seed, control, silent, future, mpi, ...) {
+                             chains, cores, threads, opencl, mpi, init, exclude,
+                             seed, control, silent, future, ...) {
 
   # some input checks and housekeeping
   if (use_threading(threads)) {
@@ -240,8 +246,8 @@ fit_model <- function(model, backend, ...) {
 # @param sdata named list to be passed to Stan as data
 # @return a fitted Stan model
 .fit_model_cmdstanr <- function(model, sdata, algorithm, iter, warmup, thin,
-                                chains, cores, threads, opencl, init, exclude,
-                                seed, control, silent, future, mpi, ...) {
+                                chains, cores, threads, opencl, mpi, init, exclude,
+                                seed, control, silent, future, ...) {
 
   require_package("cmdstanr")
   # some input checks and housekeeping
@@ -292,11 +298,12 @@ fit_model <- function(model, backend, ...) {
       fixed_param = algorithm == "fixed_param"
     )
     if (use_threading(threads)) {
-       if (use_mpi(mpi)) {
-          args$mpi_args <- list("n"=args$threads_per_chain)
-       } else {
-           args$threads_per_chain <- threads$threads
-       }
+        args$threads_per_chain <- threads$threads
+    }
+
+    if (use_mpi(mpi)) {
+      args$mpi_args <- list("n"=mpi$n_procs)
+      args$parallel_chains <- NULL
     }
 
     if (use_mpi(mpi)) {
@@ -608,6 +615,9 @@ validate_mpi <- function(mpi){
         if (isTRUE(mpi$STAN_MPI)) {
           if ( ! ((Sys.which(mpi$CXX) != "") && (mpi$TBB_CXX_TYPE %in% c("gcc","clang")))) {
               stop2("mpi argument should be a list with names STAN_MPI, CXX, and TBB_CXX_TYPE. See https://mc-stan.org/cmdstanr/reference/model-method-sample_mpi.html")
+          }
+          if (! (is.integer(mpi$n_procs))) {
+              stop2("mpi list argument needs to contain 'n_procs', the number of processes to run.")
           }
         } else {
             mpi <- NULL

@@ -64,7 +64,7 @@ compile_model <- function(model, backend, ...) {
 # compile Stan model with rstan
 # @param model Stan model code
 # @return model compiled with rstan
-.compile_model_rstan <- function(model, threads, opencl, silent = 1, ...) {
+.compile_model_rstan <- function(model, threads, opencl, mpi, silent = 1, ...) {
   args <- list(...)
   args$model_code <- model
   if (silent < 2) {
@@ -281,8 +281,13 @@ fit_model <- function(model, backend, ...) {
       fixed_param = algorithm == "fixed_param"
     )
     if (use_threading(threads)) {
-      args$threads_per_chain <- threads$threads
+       if (mpi) {
+          args$mpi_args <- list("n"=args$threads_per_chain)
+       } else {
+           args$threads_per_chain <- threads$threads
+       }
     }
+
     if (mpi) {
       out <- do_call(model$sample_mpi, args)
     } else {

@@ -481,11 +481,12 @@ brm <- function(formula, data, family = gaussian(), prior = NULL,
   init <- use_alias(init, inits)
   threads <- validate_threads(threads)
   opencl <- validate_opencl(opencl)
+  mpi <- as_one_logical(mpi)
   future <- as_one_logical(future) && chains > 0L
   seed <- as_one_numeric(seed, allow_na = TRUE)
   empty <- as_one_logical(empty)
   rename <- as_one_logical(rename)
-  mpi <- as_one_logical(mpi)
+
 
   # initialize brmsfit object
   if (is.brmsfit(fit)) {
@@ -595,7 +596,7 @@ brm <- function(formula, data, family = gaussian(), prior = NULL,
   # fit the Stan model
   fit_args <- nlist(
     model, sdata, algorithm, backend, iter, warmup, thin, chains, cores,
-    threads, opencl, init, exclude, control, future, seed, silent, ...
+    threads, opencl, mpi, init, exclude, control, future, seed, silent, ...
   )
   x$fit <- do_call(fit_model, fit_args)
 

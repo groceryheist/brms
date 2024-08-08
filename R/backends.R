@@ -616,7 +616,7 @@ validate_mpi <- function(mpi){
           if ( ! ((Sys.which(mpi$CXX) != "") && (mpi$TBB_CXX_TYPE %in% c("gcc","clang")))) {
               stop2("mpi argument should be a list with names STAN_MPI, CXX, and TBB_CXX_TYPE. See https://mc-stan.org/cmdstanr/reference/model-method-sample_mpi.html")
           }
-          if (! (is.integer(mpi$n_procs))) {
+          if (! (mpi$n_procs %% 1 == 0)) {
               stop2("mpi list argument needs to contain 'n_procs', the number of processes to run.")
           }
         } else {

@@ -84,7 +84,11 @@ compile_model <- function(model, backend, ...) {
     stop2("OpenCL is not supported by backend 'rstan' version ",
           utils::packageVersion("rstan"), ".")
   }
-  eval_silent(
+  if (use_mpi(mpi)) {
+      stop2("MPI is not supported by backend 'rstan' version ",
+            utils::packageVersion("rstan"))
+  }
+ eval_silent(
     do_call(rstan::stan_model, args),
     type = "message", try = TRUE, silent = silent >= 2
   )
@@ -93,7 +97,7 @@ compile_model <- function(model, backend, ...) {
 # compile Stan model with cmdstanr
 # @param model Stan model code
 # @return model compiled with cmdstanr
-.compile_model_cmdstanr <- function(model, threads, opencl, silent = 1, ...) {
+.compile_model_cmdstanr <- function(model, threads, opencl, mpi, silent = 1, ...) {
   require_package("cmdstanr")
   args <- list(...)
   args$stan_file <- cmdstanr::write_stan_file(model)
@@ -105,6 +109,9 @@ compile_model <- function(model, backend, ...) {
   }
   if (use_opencl(opencl)) {
     args$cpp_options$stan_opencl <- TRUE
+  }
+  if (use_mpi(mpi)) {
+    args$cpp_options <- modifyList(args$cpp_options, mpi)
   }
   eval_silent(
     do_call(cmdstanr::cmdstan_model, args),
@@ -161,7 +168,7 @@ fit_model <- function(model, backend, ...) {
     stop2("OpenCL is not supported by backend 'rstan' version ",
           utils::packageVersion("rstan"), ".")
   }
-  if (mpi) {
+  if (use_mpi(mpi)) {
       stop2("MPI is not supported by backend 'rstan'")
   }
 
@@ -281,14 +288,14 @@ fit_model <- function(model, backend, ...) {
       fixed_param = algorithm == "fixed_param"
     )
     if (use_threading(threads)) {
-       if (mpi) {
+       if (use_mpi(mpi)) {
           args$mpi_args <- list("n"=args$threads_per_chain)
        } else {
            args$threads_per_chain <- threads$threads
        }
     }
 
-    if (mpi) {
+    if (use_mpi(mpi)) {
       out <- do_call(model$sample_mpi, args)
     } else {
       out <- do_call(model$sample, args)
@@ -584,6 +591,25 @@ opencl <- function(ids = NULL) {
 
 is.brmsopencl <- function(x) {
   inherits(x, "brmsopencl")
+}
+
+use_mpi <- function(mpi){
+    mpi <- validate_mpi(mpi)
+    !(is.null(mpi))
+}
+
+validate_mpi <- function(mpi){
+  # mpi should be NULL or a list with three elements
+    if (!is.null(mpi)) {
+        if (isTRUE(mpi$STAN_MPI)) {
+          if ( ! ((Sys.which(mpi$CXX) != "") && (TBB_CXX_TYPE %in% c("gcc","clang")))) {
+              stop2("mpi argument should be a list with names STAN_MPI, CXX, and TBB_CXX_TYPE. See https://mc-stan.org/cmdstanr/reference/model-method-sample_mpi.html")
+          }
+        } else {
+            mpi <- NULL
+        }   
+    }
+    mpi
 }
 
 # validate the 'opencl' argument

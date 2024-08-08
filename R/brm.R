@@ -481,7 +481,7 @@ brm <- function(formula, data, family = gaussian(), prior = NULL,
   init <- use_alias(init, inits)
   threads <- validate_threads(threads)
   opencl <- validate_opencl(opencl)
-  mpi <- as_one_logical(mpi)
+  mpi <- validate_mpi(mpi)
   future <- as_one_logical(future) && chains > 0L
   seed <- as_one_numeric(seed, allow_na = TRUE)
   empty <- as_one_logical(empty)

@@ -602,7 +602,7 @@ validate_mpi <- function(mpi){
   # mpi should be NULL or a list with three elements
     if (!is.null(mpi)) {
         if (isTRUE(mpi$STAN_MPI)) {
-          if ( ! ((Sys.which(mpi$CXX) != "") && (TBB_CXX_TYPE %in% c("gcc","clang")))) {
+          if ( ! ((Sys.which(mpi$CXX) != "") && (mpi$TBB_CXX_TYPE %in% c("gcc","clang")))) {
               stop2("mpi argument should be a list with names STAN_MPI, CXX, and TBB_CXX_TYPE. See https://mc-stan.org/cmdstanr/reference/model-method-sample_mpi.html")
           }
         } else {

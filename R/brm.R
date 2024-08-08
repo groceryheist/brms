@@ -152,6 +152,7 @@
 #'   \code{c(0,0)} is most likely what you need. For more details, see
 #'   \code{\link{opencl}}. Can be set globally for the current \R session via
 #'   the \code{"brms.opencl"} option
+#' @param mpi Whether to use mpi for parallelism
 #' @param normalize Logical. Indicates whether normalization constants should
 #'   be included in the Stan code (defaults to \code{TRUE}). Setting it
 #'   to \code{FALSE} requires Stan version >= 2.25 to work. If \code{FALSE},
@@ -445,6 +446,7 @@ brm <- function(formula, data, family = gaussian(), prior = NULL,
                 cores = getOption("mc.cores", 1),
                 threads = getOption("brms.threads", NULL),
                 opencl = getOption("brms.opencl", NULL),
+                mpi = getOption("brms.opencl", FALSE),
                 normalize = getOption("brms.normalize", TRUE),
                 control = NULL,
                 algorithm = getOption("brms.algorithm", "sampling"),

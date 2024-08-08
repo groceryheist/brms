@@ -111,7 +111,11 @@ compile_model <- function(model, backend, ...) {
     args$cpp_options$stan_opencl <- TRUE
   }
   if (use_mpi(mpi)) {
-    args$cpp_options <- modifyList(args$cpp_options, mpi)
+    if (is.list(args$cpp_options)) {
+      args$cpp_options <- modifyList(args$cpp_options, mpi)
+    } else {
+      args$cpp_options <- mpi
+    }
   }
   eval_silent(
     do_call(cmdstanr::cmdstan_model, args),

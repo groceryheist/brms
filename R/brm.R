@@ -485,6 +485,7 @@ brm <- function(formula, data, family = gaussian(), prior = NULL,
   seed <- as_one_numeric(seed, allow_na = TRUE)
   empty <- as_one_logical(empty)
   rename <- as_one_logical(rename)
+  mpi <- as_one_logical(mpi)
 
   # initialize brmsfit object
   if (is.brmsfit(fit)) {
@@ -549,7 +550,7 @@ brm <- function(formula, data, family = gaussian(), prior = NULL,
     x <- brmsfit(
       formula = formula, data = data, data2 = data2, prior = prior,
       stanvars = stanvars, model = model, algorithm = algorithm,
-      backend = backend, threads = threads, opencl = opencl,
+      backend = backend, threads = threads, opencl = opencl, mpi=mpi,
       save_pars = save_pars, ranef = bframe$frame$re, family = family,
       basis = frame_basis(bframe, data = data),
       stan_args = nlist(init, silent, control, stan_model_args, ...)
@@ -586,6 +587,7 @@ brm <- function(formula, data, family = gaussian(), prior = NULL,
     compile_args$backend <- backend
     compile_args$threads <- threads
     compile_args$opencl <- opencl
+    compile_args$mpi <- mpi
     compile_args$silent <- silent
     model <- do_call(compile_model, compile_args)
   }
